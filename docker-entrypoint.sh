@@ -12,6 +12,8 @@ NGINX_GOOD_BOT_URL="${NGINX_GOOD_BOT_URL}"
 
 # --- FUNCTIONS ---
 use_defaut_good_bot() {
+	echo "[INFO] 🔧 Generate file : /etc/nginx/conf.d/good-bots.conf"
+	rm -f /etc/nginx/conf.d/good-bots.conf
 	tee /etc/nginx/conf.d/good-bots.conf > /dev/null <<EOF
 # Bot definitions
 # Only the following crawlers are allowed.
@@ -41,9 +43,17 @@ EOF
 
 generate_nginx_conf() {
 
+	echo "[INFO] ⚙️ Generate file : /etc/nginx/nginx.conf"
+
+	# Deletion of existing files
+	rm -f /etc/nginx/nginx.conf
+	rm -f /etc/nginx/nginx.conf.default
+
 	# Rename default config
+	echo "[INFO] Rename default file"
 	mv /etc/nginx/nginx.conf /etc/nginx/nginx.conf.default
 
+	echo "[INFO] Write file"
 	tee /etc/nginx/nginx.conf > /dev/null <<EOF
 user www-data;
 worker_processes ${NGINX_WORKER_PROCESSES};
@@ -134,16 +144,16 @@ fi
 if [ "$NGINX_GOOD_BOT_ENABLE" = "1" ]; then
 	echo "[INFO] 🤖 Enable list Good Bots"
 	if [[ -z  "${NGINX_GOOD_BOT_URL}" ]]; then
-	  echo "[INFO] No URL configured for the bot list, using the default file"
+	  echo "[INFO] ⛔ No URL configured for the bot list, using the default file"
 	  use_defaut_good_bot
 	else
 	  # Test if can Download File
 	  STATUS_CODE=$(curl -o /dev/null -s -w "%{http_code}" -L ${NGINX_GOOD_BOT_URL})
 	  if [ $STATUS_CODE -eq 200 ]; then
-		echo "[INFO] Download file from URL : ${NGINX_GOOD_BOT_URL}"
+		echo "[INFO] 📃 Download file from URL : ${NGINX_GOOD_BOT_URL}"
 		curl -sL ${NGINX_GOOD_BOT_URL} -o /etc/nginx/conf.d/good-bots.conf
 	  else
-	    echo "[WARN] URL unreachable (Code: $STATUS_CODE), using default configuration"
+	    echo "[WARN] ⚠️ URL unreachable (Code: $STATUS_CODE), using default configuration"
 		use_defaut_good_bot
 	  fi
 	fi
@@ -166,10 +176,28 @@ if [ "$NGINX_START_SHOW_VERSION" = "1" ]; then
     sleep 1
 fi
 
-echo "[INFO] Check config"
-nginx -t
+echo ""
+nginx -v
+echo ""
 
-echo ""
-echo ""
-echo "🚀 Demarrage du conteneur..."
-exec "$@"
+if nginx -t; then
+	echo "[OK] ✅ Valid configuration"
+	echo ""
+	echo "🚀 Starting the container..."
+	exec "$@"
+else
+	echo "[ERROR] 🚨 Invalid configuration, Nginx cannot start"
+	echo ""
+	echo "[DEBUG] Debugging information"
+	echo ""
+	echo "[CMD] nginx -t"
+	nginx -t
+	sleep 1
+	echo "[CMD] nginx -T (Full config)"
+	nginx -T
+	sleep 1
+	echo "[CMD] nginx -V (Full version informations)"
+	nginx -V
+	sleep 1
+	exit 1
+fi
