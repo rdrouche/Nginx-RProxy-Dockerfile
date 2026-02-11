@@ -4,43 +4,11 @@ set -e
 # Variables
 NGINX_WORKER_PROCESSES="${NGINX_WORKER_PROCESSES:-auto}"
 NGINX_WORKER_CONNECTIONS="${NGINX_WORKER_CONNECTIONS:-768}"
-NGINX_ENABLE_DEFAULT_VHOST="${NGINX_ENABLE_DEFAULT_VHOST:-0}"
 NGINX_START_SHOW_CONFIG="${NGINX_START_SHOW_CONFIG:-0}"
 NGINX_START_SHOW_VERSION="${NGINX_START_SHOW_VERSION:-0}"
-NGINX_GOOD_BOT_ENABLE="${NGINX_GOOD_BOT_ENABLE:-0}"
-NGINX_GOOD_BOT_URL="${NGINX_GOOD_BOT_URL}"
+
 
 # --- FUNCTIONS ---
-use_defaut_good_bot() {
-	echo "[INFO] 🔧 Generate file : /etc/nginx/conf.d/good-bots.conf"
-	rm -f /etc/nginx/conf.d/good-bots.conf
-	tee /etc/nginx/conf.d/good-bots.conf > /dev/null <<EOF
-# Bot definitions
-# Only the following crawlers are allowed.
-
-map \$http_user_agent \$is_good_bot {
-        default 0;
-
-        # Google & Bing
-        "~*googlebot" 1;
-        "~*bingbot" 1;
-        "~*adidxbot" 1;
-        
-        # Other search bots
-        "~*duckduckbot" 1;
-        "~*qwantify" 1;
-        "~*baiduspider" 1;
-        "~*yandexbot" 1;
-        "~*yeti" 1;
-        
-        # Social Networks
-        "~*facebookexternalhit" 1;
-        "~*twitterbot" 1;
-        "~*pinterestbot" 1;
-}
-EOF
-}
-
 generate_nginx_conf() {
 
 	echo "[INFO] ⚙️ Generate file : /etc/nginx/nginx.conf"
@@ -132,35 +100,6 @@ EOF
 
 # Generate config file
 generate_nginx_conf
-
-if [ "$NGINX_ENABLE_DEFAULT_VHOST" = "1" ]; then
-    echo "[INFO] Enable default virtualhost"
-    cp /etc/nginx/sites-available/default /etc/nginx/sites/default.conf
-else
-    echo "[INFO] Disable default virtualhost"
-    rm -f /etc/nginx/sites/default.conf
-fi
-
-if [ "$NGINX_GOOD_BOT_ENABLE" = "1" ]; then
-	echo "[INFO] 🤖 Enable list Good Bots"
-	if [[ -z  "${NGINX_GOOD_BOT_URL}" ]]; then
-	  echo "[INFO] ⛔ No URL configured for the bot list, using the default file"
-	  use_defaut_good_bot
-	else
-	  # Test if can Download File
-	  STATUS_CODE=$(curl -o /dev/null -s -w "%{http_code}" -L ${NGINX_GOOD_BOT_URL})
-	  if [ $STATUS_CODE -eq 200 ]; then
-		echo "[INFO] 📃 Download file from URL : ${NGINX_GOOD_BOT_URL}"
-		curl -sL ${NGINX_GOOD_BOT_URL} -o /etc/nginx/conf.d/good-bots.conf
-	  else
-	    echo "[WARN] ⚠️ URL unreachable (Code: $STATUS_CODE), using default configuration"
-		use_defaut_good_bot
-	  fi
-	fi
-else
-	# Delete file for disable config
-	rm -f /etc/nginx/conf.d/good-bots.conf
-fi
 
 if [ "$NGINX_START_SHOW_CONFIG" = "1" ]; then
     nginx -T
