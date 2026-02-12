@@ -2,7 +2,7 @@
 FROM debian:trixie-slim
 
 # Métadonnées
-LABEL maintainer="admin@votre-domaine.com"
+LABEL maintainer="RDR-IT"
 LABEL description="Nginx Reverse Proxy - Debian 13 - Sury Repository"
 
 # Éviter les interactions lors de l'installation
@@ -20,11 +20,6 @@ RUN curl -sSLo /tmp/debsuryorg-archive-keyring.deb https://packages.sury.org/deb
     && dpkg -i /tmp/debsuryorg-archive-keyring.deb \
     && sh -c 'echo "deb [signed-by=/usr/share/keyrings/debsuryorg-archive-keyring.gpg] https://packages.sury.org/nginx/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/nginx.list' \
     && apt-get update
-
-# Ajout de la clé GPG et du dépôt Nginx d'Ondřej Surý
-#RUN curl -sSLo /usr/share/keyrings/deb.sury.org-nginx.gpg https://packages.sury.org/nginx/apt.gpg \
-#    && echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-nginx.gpg] https://packages.sury.org/nginx/trixie main" \
-#    > /etc/apt/sources.list.d/nginx.list
 
 # Installation de Nginx et nettoyage
 RUN apt-get update && apt-get install -y \

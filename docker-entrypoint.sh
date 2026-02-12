@@ -14,7 +14,6 @@ generate_nginx_conf() {
 	echo "[INFO] ⚙️ Generate file : /etc/nginx/nginx.conf"
 
 	# Deletion of existing files
-	#rm -f /etc/nginx/nginx.conf
 	rm -f /etc/nginx/nginx.conf.default
 
 	# Rename default config
