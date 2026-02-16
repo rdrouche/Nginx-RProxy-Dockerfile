@@ -27,6 +27,7 @@ worker_processes ${NGINX_WORKER_PROCESSES};
 pid /run/nginx.pid;
 error_log /var/log/nginx/error.log;
 include /etc/nginx/modules-enabled/*.conf;
+include /etc/nginx/modules/*.conf;
 
 events {
 	worker_connections ${NGINX_WORKER_CONNECTIONS};
@@ -82,7 +83,6 @@ http {
 
 	include /etc/nginx/conf.d/*.conf;
 	include /etc/nginx/sites/*.conf;
-    include /etc/nginx/modules/*.conf;
 }
 
 stream {
