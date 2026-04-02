@@ -6,6 +6,7 @@ NGINX_WORKER_PROCESSES="${NGINX_WORKER_PROCESSES:-auto}"
 NGINX_WORKER_CONNECTIONS="${NGINX_WORKER_CONNECTIONS:-768}"
 NGINX_START_SHOW_CONFIG="${NGINX_START_SHOW_CONFIG:-0}"
 NGINX_START_SHOW_VERSION="${NGINX_START_SHOW_VERSION:-0}"
+NGINX_HTTP_EXTRA_CONF="${NGINX_HTTP_EXTRA_CONF:-}"
 
 
 # --- FUNCTIONS ---
@@ -50,6 +51,11 @@ http {
 
 	include /etc/nginx/mime.types;
 	default_type application/octet-stream;
+
+	##
+	# Custom Injection (Rate Limit, etc.)
+	##
+	${NGINX_HTTP_EXTRA_CONF}
 
 	##
 	# SSL Settings
