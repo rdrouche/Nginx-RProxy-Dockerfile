@@ -1,4 +1,4 @@
-build:
+#build:
   stage: build
   image: docker:latest
   services:
